@@ -1,0 +1,1097 @@
+---
+title: "M1"
+author: "Sho Kosaka"
+date: "12/4/2017"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(RMeCab)
+library(wordcloud)
+library(maptools)
+
+setwd("~/Desktop/DataAnalysis/Twitter")
+
+toro_salmon <- read.csv("m1_toro_salmon.csv", fileEncoding = "UTF-16", sep = "\t")
+wagyu <- read.csv("m1_wagyu.csv", fileEncoding = "UTF-16", sep = "\t")
+miki <- read.csv("m1_miki.csv", fileEncoding = "UTF-16", sep = "\t")
+kamaitachi <- read.csv("m1_kamaitachi.csv", fileEncoding = "UTF-16", sep = "\t")
+supermaradona <- read.csv("m1_supermaradona.csv", fileEncoding = "UTF-16", sep = "\t")
+jarujaru <- read.csv("m1_jarujaru.csv", fileEncoding = "UTF-16", sep = "\t")
+sayaka <- read.csv("m1_sayaka.csv", fileEncoding = "UTF-16", sep = "\t")
+universe <- read.csv("m1_universe.csv", fileEncoding = "UTF-16", sep = "\t")
+kaminari <- read.csv("m1_kaminari.csv", fileEncoding = "UTF-16", sep = "\t")
+madicallovely <- read.csv("m1_madicallovely.csv", fileEncoding = "UTF-16", sep = "\t")
+madicallovely1 <- read.csv("m1_madicallovely1.csv", fileEncoding = "UTF-16", sep = "\t")
+
+toro_salmon$keyword <- "とろサーモン"
+wagyu$keyword <- "和牛"
+miki$keyword <- "ミキ"
+kamaitachi$keyword <- "かまいたち"
+supermaradona$keyword <- "スーパーマラドーナ"
+jarujaru$keyword <- "ジャルジャル"
+sayaka$keyword <- "さや香"
+universe$keyword <- "ゆにばーす"
+kaminari$keyword <- "カミナリ"
+madicallovely$keyword <- "マヂカルラブリー"
+madicallovely1$keyword <- "マヂカルラブリー"
+
+m1_df <- rbind(toro_salmon, wagyu, miki, kamaitachi, supermaradona,
+               jarujaru, sayaka, universe, kaminari, madicallovely, madicallovely1)
+
+m1_df$created_at <- as.character(m1_df$created_at)
+m1_df$created_at <- gsub("\\+", "-", m1_df$created_at)
+m1_df$created_at <- gsub("0000", "1400", m1_df$created_at)
+m1_df$created_at <- strptime(m1_df$created_at, "%a %b %d %H:%M:%S %z %Y")
+
+m1_df1 <- subset(m1_df, m1_df$text != "")
+
+m1_df1$X <- as.character(m1_df1$X)
+m1_df1$X <- as.integer(m1_df1$X)
+m1_df1$text <- as.character(m1_df1$text)
+m1_df1$keyword <- as.factor(m1_df1$keyword)
+str(m1_df1)
+```
+
+```{r}
+m1_df2 <- m1_df1
+m1_df2$created_at <- as.POSIXct(round(m1_df2$created_at, "mins"))
+m1_df2$created_at <- as.character(m1_df2$created_at)
+
+m1_df3 <- m1_df2 %>%
+  select(created_at, keyword) %>%
+  group_by(created_at, keyword) %>%
+  tally()
+
+m1_df3$created_at <- as.POSIXct(m1_df3$created_at)
+```
+
+```{r}
+m1_df11 <- m1_df3[29501:32847,]
+
+m1_df11$keyword_o = m1_df11$keyword
+
+m1_df11$keyword_o <- gsub("ゆにばーす", "1. ゆにばーす", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("マヂカルラブリー", "6. マヂカルラブリー", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("カミナリ", "2. カミナリ", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("さや香", "7. さや香", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("とろサーモン", "3. とろサーモン", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("ミキ", "8. ミキ", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("スーパーマラドーナ", "4. スーパーマラドーナ", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("和牛", "9. 和牛", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("かまいたち", "5. かまいたち", m1_df11$keyword_o)
+m1_df11$keyword_o <- gsub("ジャルジャル", "10. ジャルジャル", m1_df11$keyword_o)
+
+m1_df11$keyword_o = factor(m1_df11$keyword_o, levels=c(
+  '1. ゆにばーす',"6. マヂカルラブリー",'2. カミナリ',"7. さや香",'3. とろサーモン',
+  "8. ミキ",'4. スーパーマラドーナ',"9. 和牛","5. かまいたち","10. ジャルジャル"))
+
+ggplot(m1_df11, aes(created_at, n)) +
+  geom_line() +
+  ggtitle("ツイート数　放送前（12:00 - 18:59）")+xlab("")+ylab("ツイート数 / 分")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(color = "") +
+  facet_wrap(~keyword_o, nrow = 5)
+```
+
+
+```{r}
+m1_df4 <- m1_df3[32848:34351,]
+
+m1_df4$keyword_o = m1_df4$keyword
+
+m1_df4$keyword_o <- gsub("ゆにばーす", "1. ゆにばーす", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("マヂカルラブリー", "6. マヂカルラブリー", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("カミナリ", "2. カミナリ", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("さや香", "7. さや香", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("とろサーモン", "3. とろサーモン", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("ミキ", "8. ミキ", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("スーパーマラドーナ", "4. スーパーマラドーナ", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("和牛", "9. 和牛", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("かまいたち", "5. かまいたち", m1_df4$keyword_o)
+m1_df4$keyword_o <- gsub("ジャルジャル", "10. ジャルジャル", m1_df4$keyword_o)
+
+m1_df4$keyword_o = factor(m1_df4$keyword_o, levels=c(
+  '1. ゆにばーす',"6. マヂカルラブリー",'2. カミナリ',"7. さや香",'3. とろサーモン',
+  "8. ミキ",'4. スーパーマラドーナ',"9. 和牛","5. かまいたち","10. ジャルジャル"))
+
+ggplot(m1_df4, aes(created_at, n)) +
+  geom_line() +
+  ggtitle("ツイート数　決勝ファーストラウンド（19:00 - 21:29）")+xlab("")+ylab("ツイート数 / 分")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(color = "") +
+  facet_wrap(~keyword_o, ncol = 2)
+```
+
+```{r}
+m1_df4$keyword_o = factor(m1_df4$keyword_o, levels=c(
+  '1. ゆにばーす','2. カミナリ','3. とろサーモン','4. スーパーマラドーナ',
+  "5. かまいたち","6. マヂカルラブリー","7. さや香","8. ミキ","9. 和牛","10. ジャルジャル"))
+
+ggplot(m1_df4, aes(created_at, n, color = keyword_o)) +
+  geom_line() +
+  ggtitle("ツイート数　決勝ファーストラウンド（19:00 - 21:29）")+xlab("")+ylab("ツイート数 / 分")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(color = "")
+```
+
+
+```{r}
+m1_df9 <- m1_df3[34352:34701,]
+
+m1_df10 <- m1_df9 %>%
+  filter(keyword == "とろサーモン" | keyword == "和牛" | keyword == "ミキ")
+
+ggplot(m1_df10, aes(created_at, n, color = keyword)) +
+  geom_line() +
+  ggtitle("[今回不要]ツイート数　ファイナル（21:30 - 22:05）")+xlab("")+ylab("ツイート数 / 分")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(color = "")
+```
+
+
+
+
+```{r}
+m1_df5 <- m1_df1[m1_df1$keyword == "和牛",]
+
+#ex_1 <- grep("和牛", m1_df5$text)
+#m1_df6 <- m1_df5[-ex_1,]
+#ex_2 <- grep("ミキ", m1_df6$text)
+#m1_df7 <- m1_df6[-ex_2,]
+
+#m1_df8 <- m1_df7[,3]
+m1_df8 <- m1_df5[,3]
+write.table(m1_df8, "toro_salmon.txt", row.names = FALSE)
+res <- RMeCabFreq("toro_salmon.txt")
+res_toro <- res[res[, 2] == "名詞" & res[, 3] == "一般" & res[, 4] > 50 & res[, 4] < 4000, ]
+
+patern <- brewer.pal(8, "Dark2")
+par(family = "HiraKakuProN-W3")
+wordcloud(res_toro$Term, res_toro$Freq, min.freq = 1, colors = patern)
+```
+
+```{r}
+m1_df_uni <- m1_df1[m1_df1$keyword == "ゆにばーす",]
+m1_df_kami <- m1_df1[m1_df1$keyword == "カミナリ",]
+m1_df_toro <- m1_df1[m1_df1$keyword == "とろサーモン",]
+m1_df_super <- m1_df1[m1_df1$keyword == "スーパーマラドーナ",]
+m1_df_kama <- m1_df1[m1_df1$keyword == "かまいたち",]
+m1_df_magic <- m1_df1[m1_df1$keyword == "マヂカルラブリー",]
+m1_df_saya <- m1_df1[m1_df1$keyword == "さや香",]
+m1_df_miki <- m1_df1[m1_df1$keyword == "ミキ",]
+m1_df_wagyu <- m1_df1[m1_df1$keyword == "和牛",]
+m1_df_jaru <- m1_df1[m1_df1$keyword == "ジャルジャル",]
+
+write.table(m1_df_uni[,3], "universe.txt", row.names = FALSE)
+res_uni <- RMeCabFreq("universe.txt")
+
+write.table(m1_df_kami[,3], "kaminari.txt", row.names = FALSE)
+res_kami <- RMeCabFreq("kaminari.txt")
+
+write.table(m1_df_toro[,3], "toro_salmon.txt", row.names = FALSE)
+res_toro <- RMeCabFreq("toro_salmon.txt")
+
+write.table(m1_df_super[,3], "super_maradona.txt", row.names = FALSE)
+res_super <- RMeCabFreq("super_maradona.txt")
+
+write.table(m1_df_kama[,3], "kamaitachi.txt", row.names = FALSE)
+res_kama <- RMeCabFreq("kamaitachi.txt")
+
+write.table(m1_df_magic[,3], "madical_lovely.txt", row.names = FALSE)
+res_magic <- RMeCabFreq("madical_lovely.txt")
+
+write.table(m1_df_saya[,3], "sayaka.txt", row.names = FALSE)
+res_saya <- RMeCabFreq("sayaka.txt")
+
+write.table(m1_df_miki[,3], "miki.txt", row.names = FALSE)
+res_miki <- RMeCabFreq("miki.txt")
+
+write.table(m1_df_wagyu[,3], "wagyu.txt", row.names = FALSE)
+res_wagyu <- RMeCabFreq("wagyu.txt")
+
+write.table(m1_df_jaru[,3], "jarujaru.txt", row.names = FALSE)
+res_jaru <- RMeCabFreq("jarujaru.txt")
+```
+```{r}
+m1_df_uni <- m1_df1[m1_df1$keyword == "ゆにばーす",]
+rownames(m1_df_uni) <- 1:nrow(m1_df_uni)
+m1_df_uni <- m1_df_uni[635:17810,]
+
+m1_df_kami <- m1_df1[m1_df1$keyword == "カミナリ",]
+rownames(m1_df_kami) <- 1:nrow(m1_df_kami)
+m1_df_kami <- m1_df_kami[324:18039,]
+
+m1_df_toro <- m1_df1[m1_df1$keyword == "とろサーモン",]
+rownames(m1_df_toro) <- 1:nrow(m1_df_toro)
+m1_df_toro <- m1_df_toro[13260:38617,]
+
+m1_df_super <- m1_df1[m1_df1$keyword == "スーパーマラドーナ",]
+rownames(m1_df_super) <- 1:nrow(m1_df_super)
+m1_df_super <- m1_df_super[543:17371,]
+
+m1_df_kama <- m1_df1[m1_df1$keyword == "かまいたち",]
+rownames(m1_df_kama) <- 1:nrow(m1_df_kama)
+m1_df_kama <- m1_df_kama[826:26806,]
+
+m1_df_magic <- m1_df1[m1_df1$keyword == "マヂカルラブリー",]
+rownames(m1_df_magic) <- 1:nrow(m1_df_magic)
+m1_df_magic <- m1_df_magic[524:14705,]
+
+m1_df_saya <- m1_df1[m1_df1$keyword == "さや香",]
+rownames(m1_df_saya) <- 1:nrow(m1_df_saya)
+m1_df_saya <- m1_df_saya[704:20247,]
+
+m1_df_miki <- m1_df1[m1_df1$keyword == "ミキ",]
+rownames(m1_df_miki) <- 1:nrow(m1_df_miki)
+m1_df_miki <- m1_df_miki[32167:82953,]
+
+m1_df_wagyu <- m1_df1[m1_df1$keyword == "和牛",]
+rownames(m1_df_wagyu) <- 1:nrow(m1_df_wagyu)
+m1_df_wagyu <- m1_df_wagyu[36018:94389,]
+
+m1_df_jaru <- m1_df1[m1_df1$keyword == "ジャルジャル",]
+rownames(m1_df_jaru) <- 1:nrow(m1_df_jaru)
+m1_df_jaru <- m1_df_jaru[6920:53928,]
+
+#ゆにばーす
+m1_df13 <- m1_df_uni
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_uni_ex <- m1_df13
+
+#カミナリ
+m1_df13 <- m1_df_kami
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_kami_ex <- m1_df13
+
+#とろサーモン
+m1_df13 <- m1_df_toro
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_toro_ex <- m1_df13
+
+#スーパーマラドーナ
+m1_df13 <- m1_df_super
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_super_ex <- m1_df13
+
+#かまいたち
+m1_df13 <- m1_df_kama
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_kama_ex <- m1_df13
+
+#マヂカルラブリー
+m1_df13 <- m1_df_magic
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_magic_ex <- m1_df13
+
+#さや香
+m1_df13 <- m1_df_saya
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_saya_ex <- m1_df13
+
+#ミキ
+m1_df13 <- m1_df_miki
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_miki_ex <- m1_df13
+
+#和牛
+m1_df13 <- m1_df_wagyu
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ジャルジャル", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_wagyu_ex <- m1_df13
+
+#ジャルジャル
+m1_df13 <- m1_df_jaru
+ex_1 <- grep("ゆにばーす", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("カミナリ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("スーパーマラドーナ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("かまいたち", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("マヂカルラブリー", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("さや香", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("ミキ", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("和牛", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+ex_1 <- grep("とろサーモン", m1_df13$text)
+m1_df13 <- m1_df13[-ex_1,]
+m1_jaru_ex <- m1_df13
+```
+
+```{r}
+write.table(m1_uni_ex[,3], "universe_ex.txt", row.names = FALSE)
+res_uni_ex <- RMeCabFreq("universe_ex.txt")
+
+write.table(m1_kami_ex[,3], "kaminari_ex.txt", row.names = FALSE)
+res_kami_ex <- RMeCabFreq("kaminari_ex.txt")
+
+write.table(m1_toro_ex[,3], "toro_salmon_ex.txt", row.names = FALSE)
+res_toro_ex <- RMeCabFreq("toro_salmon_ex.txt")
+
+write.table(m1_super_ex[,3], "super_maradona_ex.txt", row.names = FALSE)
+res_super_ex <- RMeCabFreq("super_maradona_ex.txt")
+
+write.table(m1_kama_ex[,3], "kamaitachi_ex.txt", row.names = FALSE)
+res_kama_ex <- RMeCabFreq("kamaitachi_ex.txt")
+
+write.table(m1_magic_ex[,3], "madical_lovely_ex.txt", row.names = FALSE)
+res_magic_ex <- RMeCabFreq("madical_lovely_ex.txt")
+
+write.table(m1_saya_ex[,3], "sayaka_ex.txt", row.names = FALSE)
+res_saya_ex <- RMeCabFreq("sayaka_ex.txt")
+
+write.table(m1_miki_ex[,3], "miki_ex.txt", row.names = FALSE)
+res_miki_ex <- RMeCabFreq("miki_ex.txt")
+
+write.table(m1_wagyu_ex[,3], "wagyu_ex.txt", row.names = FALSE)
+res_wagyu_ex <- RMeCabFreq("wagyu_ex.txt")
+
+write.table(m1_jaru_ex[,3], "jarujaru_ex.txt", row.names = FALSE)
+res_jaru_ex <- RMeCabFreq("jarujaru_ex.txt")
+```
+```{r}
+res_uni_ex1 <- res_uni_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_kami_ex1 <- res_kami_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_toro_ex1 <- res_toro_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_super_ex1 <- res_super_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_kama_ex1 <- res_kama_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_magic_ex1 <- res_magic_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_saya_ex1 <- res_saya_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_miki_ex1 <- res_miki_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_wagyu_ex1 <- res_wagyu_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_jaru_ex1 <- res_jaru_ex %>%
+  filter(Term == "面白い" | Term == "おもろい" | Term == "おもしろい" |
+           Term == "おもんない" | Term == "おもろない" | Term == "好き" |
+           Term == "大好き" | Term == "嫌い" | Term == "笑" |
+           Term == "w" | Term == "ww" | Term == "www" | Term == "wwww" |
+           Term == "wwwww" | Term == "wwwwww" | Term == "wwwwwww" | Term == "wwwwwwww" |
+           Term == "wwwwwwwww" | Term == "wwwwwwwwww") %>%
+  select(Term, Freq) %>%
+  group_by(Term) %>%
+  summarise(Freq = sum(Freq))
+
+res_uni_ex1$keyword <- "ゆにばーす"
+res_kami_ex1$keyword <- "カミナリ"
+res_toro_ex1$keyword <- "とろサーモン"
+res_super_ex1$keyword <- "スーパーマラドーナ"
+res_kama_ex1$keyword <- "かまいたち"
+res_magic_ex1$keyword <- "マヂカルラブリー"
+res_saya_ex1$keyword <- "さや香"
+res_miki_ex1$keyword <- "ミキ"
+res_wagyu_ex1$keyword <- "和牛"
+res_jaru_ex1$keyword <- "ジャルジャル"
+```
+
+```{r}
+res_all_w <- rbind(res_uni_ex1[1:10,], res_kami_ex1[1:10,], res_toro_ex1[1:10,],
+                   res_super_ex1[1:10,], res_kama_ex1[1:10,], res_magic_ex1[1:10,],
+                   res_saya_ex1[1:10,], res_miki_ex1[1:10,], res_wagyu_ex1[1:10,], 
+                   res_jaru_ex1[1:10,])
+
+res_all_pn <- rbind(res_uni_ex1[11:19,], res_kami_ex1[11:19,], res_toro_ex1[11:19,],
+                   res_super_ex1[11:19,], res_kama_ex1[11:19,], res_magic_ex1[11:19,],
+                   res_saya_ex1[11:19,], res_miki_ex1[11:19,], res_wagyu_ex1[11:19,], 
+                   res_jaru_ex1[11:19,])
+```
+
+```{r}
+res_all_w$keyword_o = res_all_w$keyword
+
+res_all_w$keyword_o <- gsub("ゆにばーす", "1. ゆにばーす", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("マヂカルラブリー", "6. マヂカルラブリー", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("カミナリ", "2. カミナリ", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("さや香", "7. さや香", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("とろサーモン", "3. とろサーモン", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("ミキ", "8. ミキ", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("スーパーマラドーナ", "4. スーパーマラドーナ", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("和牛", "9. 和牛", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("かまいたち", "5. かまいたち", res_all_w$keyword_o)
+res_all_w$keyword_o <- gsub("ジャルジャル", "10. ジャルジャル", res_all_w$keyword_o)
+
+res_all_w$keyword_o = factor(res_all_w$keyword_o, levels=c(
+  '1. ゆにばーす',"6. マヂカルラブリー",'2. カミナリ',"7. さや香",'3. とろサーモン',
+  "8. ミキ",'4. スーパーマラドーナ',"9. 和牛","5. かまいたち","10. ジャルジャル"))
+
+res_all_w$number_w <- rep(c(1,2,3,4,5,6,7,8,9,10),10)
+res_all_w$number_w1 <- rep(c("w","ww","www","wwww","wwwww","wwwwww",
+                             "wwwwwww","wwwwwwww","wwwwwwwww","wwwwwwwwww"),10)
+
+ggplot(res_all_w, aes(number_w, Freq)) +
+  geom_bar(stat = "identity") +
+  ggtitle("wを含むツイートの分布（19:00 - 21:29）")+xlab("wの個数")+ylab("ツイート数")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(breaks = seq(0,2000,1000)) +
+  scale_x_continuous(breaks=seq(0,10,1)) +
+  labs(color = "") +
+  facet_wrap(~keyword_o, ncol = 2)
+
+ggplot(res_all_w, aes(number_w1, Freq)) +
+  geom_bar(stat = "identity") +
+  ggtitle("wを含むツイートの分布（19:00 - 21:29）")+xlab("")+ylab("ツイート数")+ 
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(breaks = seq(0,2000,1000)) +
+  #scale_x_continuous(breaks=seq(0,10,1)) +
+  theme(axis.text.x = element_text(angle = 30, hjust =1))+
+  labs(color = "") +
+  facet_wrap(~keyword_o, ncol = 2)
+```
+```{r}
+res_all_w1 <- res_all_w
+res_all_w1$total <- 0
+for (i in 1:100) {
+  if (res_all_w1$keyword[i] == "ゆにばーす") {
+    res_all_w1$total[i] <- nrow(m1_uni_ex)
+  }
+  else if (res_all_w1$keyword[i] == "カミナリ") {
+    res_all_w1$total[i] <- nrow(m1_kami_ex)
+  }
+  else if (res_all_w1$keyword[i] == "とろサーモン") {
+    res_all_w1$total[i] <- nrow(m1_toro_ex)
+  }
+  else if (res_all_w1$keyword[i] == "スーパーマラドーナ") {
+    res_all_w1$total[i] <- nrow(m1_super_ex)
+  }
+  else if (res_all_w1$keyword[i] == "かまいたち") {
+    res_all_w1$total[i] <- nrow(m1_kama_ex)
+  }
+  else if (res_all_w1$keyword[i] == "マヂカルラブリー") {
+    res_all_w1$total[i] <- nrow(m1_magic_ex)
+  }
+  else if (res_all_w1$keyword[i] == "さや香") {
+    res_all_w1$total[i] <- nrow(m1_saya_ex)
+  }
+  else if (res_all_w1$keyword[i] == "ミキ") {
+    res_all_w1$total[i] <- nrow(m1_miki_ex)
+  }
+  else if (res_all_w1$keyword[i] == "和牛") {
+    res_all_w1$total[i] <- nrow(m1_wagyu_ex)
+  }
+  else if (res_all_w1$keyword[i] == "ジャルジャル") {
+    res_all_w1$total[i] <- nrow(m1_jaru_ex)
+  }
+}
+res_all_w1$total <- as.numeric(res_all_w1$total)
+res_all_w1$rate <- res_all_w1$Freq / res_all_w1$total
+
+
+ggplot(res_all_w1, aes(number_w1, rate)) +
+  geom_bar(stat = "identity") +
+  ggtitle("wを含むツイート割合の分布（19:00 - 21:29）")+xlab("")+ylab("ツイート数 / トータル")+ 
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(breaks = seq(0,0.06,0.03)) +
+  #scale_x_continuous(breaks=seq(0,10,1)) +
+  theme(axis.text.x = element_text(angle = 30, hjust =1))+
+  labs(color = "") +
+  facet_wrap(~keyword_o, ncol = 2)
+```
+
+
+```{r}
+res_all_pn$pn <- rep(c("Positive","Positive","Negative","Negative","Positive","Positive","Negative","Positive","Positive"),10)
+
+res_all_pn1 <- res_all_pn %>%
+  select(Freq, keyword, pn) %>%
+  dplyr::group_by(keyword, pn) %>%
+  dplyr::summarise(Freq = sum(Freq))
+
+res_all_pn1$keyword_o = res_all_pn1$keyword
+
+res_all_pn1$keyword_o <- gsub("ゆにばーす", "1. ゆにばーす", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("マヂカルラブリー", "6. マヂカルラブリー", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("カミナリ", "2. カミナリ", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("さや香", "7. さや香", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("とろサーモン", "3. とろサーモン", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("ミキ", "8. ミキ", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("スーパーマラドーナ", "4. スーパーマラドーナ", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("和牛", "9. 和牛", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("かまいたち", "5. かまいたち", res_all_pn1$keyword_o)
+res_all_pn1$keyword_o <- gsub("ジャルジャル", "10. ジャルジャル", res_all_pn1$keyword_o)
+
+res_all_pn1$keyword_o = factor(res_all_pn1$keyword_o, levels=c(
+  '1. ゆにばーす','2. カミナリ','3. とろサーモン','4. スーパーマラドーナ',
+  "5. かまいたち","6. マヂカルラブリー","7. さや香","8. ミキ","9. 和牛","10. ジャルジャル"))
+
+ggplot(res_all_pn1, aes(keyword_o, Freq, fill = pn)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ggtitle("Positive/Negative ツイート数（19:00 - 21:29）")+xlab("")+ylab("ツイート数")+ 
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  labs(fill = "")
+```
+```{r}
+res_all_pn2 <- res_all_pn1
+res_all_pn2$total <- 0
+
+res_all_pn2$total[1] <- nrow(m1_kama_ex)
+res_all_pn2$total[2] <- nrow(m1_kama_ex)
+res_all_pn2$total[3] <- nrow(m1_kami_ex)
+res_all_pn2$total[4] <- nrow(m1_kami_ex)
+res_all_pn2$total[5] <- nrow(m1_saya_ex)
+res_all_pn2$total[6] <- nrow(m1_saya_ex)
+res_all_pn2$total[7] <- nrow(m1_jaru_ex)
+res_all_pn2$total[8] <- nrow(m1_jaru_ex)
+res_all_pn2$total[9] <- nrow(m1_super_ex)
+res_all_pn2$total[10] <- nrow(m1_super_ex)
+res_all_pn2$total[11] <- nrow(m1_toro_ex)
+res_all_pn2$total[12] <- nrow(m1_toro_ex)
+res_all_pn2$total[13] <- nrow(m1_magic_ex)
+res_all_pn2$total[14] <- nrow(m1_magic_ex)
+res_all_pn2$total[15] <- nrow(m1_miki_ex)
+res_all_pn2$total[16] <- nrow(m1_miki_ex)
+res_all_pn2$total[17] <- nrow(m1_uni_ex)
+res_all_pn2$total[18] <- nrow(m1_uni_ex)
+res_all_pn2$total[19] <- nrow(m1_wagyu_ex)
+res_all_pn2$total[20] <- nrow(m1_wagyu_ex)
+
+res_all_pn2$rate <- res_all_pn2$Freq / res_all_pn2$total
+
+res_all_pn2$keyword_o = factor(res_all_pn2$keyword_o, levels=c(
+  '1. ゆにばーす','2. カミナリ','3. とろサーモン','4. スーパーマラドーナ',
+  "5. かまいたち","6. マヂカルラブリー","7. さや香","8. ミキ","9. 和牛","10. ジャルジャル"))
+
+ggplot(res_all_pn2, aes(keyword_o, rate, fill = pn)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ggtitle("Positive/Negative ツイート割合（19:00 - 21:29）")+xlab("")+ylab("ツイート数 / トータル")+ 
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  labs(fill = "")
+```
+
+
+```{r}
+m1_df14 <- m1_df1[m1_df1$keyword == "とろサーモン",]
+ex_1 <- grep("和牛", m1_df14$text)
+m1_df14 <- m1_df14[-ex_1,]
+ex_1 <- grep("ミキ", m1_df14$text)
+m1_df14 <- m1_df14[-ex_1,]
+rownames(m1_df14) <- 1:nrow(m1_df14)
+m1_toro_f_ex <- m1_df14[1:9846,]
+
+m1_df14 <- m1_df1[m1_df1$keyword == "和牛",]
+ex_1 <- grep("とろサーモン", m1_df14$text)
+m1_df14 <- m1_df14[-ex_1,]
+ex_1 <- grep("ミキ", m1_df14$text)
+m1_df14 <- m1_df14[-ex_1,]
+rownames(m1_df14) <- 1:nrow(m1_df14)
+m1_wagyu_f_ex <- m1_df14[1:26644,]
+
+m1_df14 <- m1_df1[m1_df1$keyword == "ミキ",]
+ex_1 <- grep("とろサーモン", m1_df14$text)
+m1_df14 <- m1_df14[-ex_1,]
+ex_1 <- grep("和牛", m1_df14$text)
+m1_df14 <- m1_df14[-ex_1,]
+rownames(m1_df14) <- 1:nrow(m1_df14)
+m1_miki_f_ex <- m1_df14[1:23426,]
+```
+
+```{r}
+m1_final_ex <- rbind(m1_toro_f_ex, m1_wagyu_f_ex, m1_miki_f_ex)
+
+m1_final_ex$created_at <- as.POSIXct(round(m1_final_ex$created_at, "mins"))
+m1_final_ex$created_at <- as.character(m1_final_ex$created_at)
+
+m1_final_ex1 <- m1_final_ex %>%
+  select(created_at, keyword) %>%
+  group_by(created_at, keyword) %>%
+  tally()
+
+m1_final_ex1$created_at <- as.POSIXct(m1_final_ex1$created_at)
+
+ggplot(m1_final_ex1, aes(created_at, n, color = keyword)) +
+  geom_line() +
+  ggtitle("ツイート数　最終決戦（21:30 - 22:05）")+xlab("")+ylab("ツイート数 / 分")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(color = "")
+```
+
+
+```{r}
+t_kojin <- length(grep("個人的", m1_toro_f_ex$text)) #502
+t_yusho <- length(grep("優勝", m1_toro_f_ex$text)) #1034
+t_ichiban <- length(grep("一番", m1_toro_f_ex$text)) + length(grep("1番", m1_toro_f_ex$text)) #216 + 101
+
+
+w_kojin <- length(grep("個人的", m1_wagyu_f_ex$text)) #721
+w_yusho <- length(grep("優勝", m1_wagyu_f_ex$text)) #2903
+w_ichiban <- length(grep("一番", m1_wagyu_f_ex$text)) + length(grep("1番", m1_wagyu_f_ex$text)) #425 + 136
+
+m_kojin <- length(grep("個人的", m1_miki_f_ex$text)) #1149
+m_yusho <- length(grep("優勝", m1_miki_f_ex$text)) #1981
+m_ichiban <- length(grep("一番", m1_miki_f_ex$text)) + length(grep("1番", m1_miki_f_ex$text)) #476 + 233
+keyword <- rep(c("とろサーモン", "和牛", "ミキ"),3)
+numbers <- c(t_kojin, w_kojin, m_kojin, t_yusho, w_yusho, m_yusho, t_ichiban, w_ichiban, m_ichiban)
+words <- c(rep("個人的",3), rep("優勝",3), rep("一番/1番",3))
+
+m1_final_words <- data.frame(Keyword = keyword, N = numbers, Words = words)
+m1_final_words
+```
+
+```{r}
+ggplot(m1_final_words, aes(Keyword, N, fill = Words)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ggtitle("ツイート数　最終決戦（21:30 - 22:05）")+xlab("")+ylab("ツイート数")+ 
+  theme(axis.text.x = element_text(angle = 45, hjust =1))+
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(fill = "")
+```
+
+```{r}
+All <- c(88,92,93,95,94,93,87,89,87,86)
+Leader <- c(93,92,94,89,91,88,91,87,86,89)
+Reiji <- c(93,93,91,94,92,89,90,90,89,88)
+Koasa <- c(93,94,92,90,91,90,90,91,90,89)
+Daikichi <- c(93,94,91,92,93,91,90,92,91,88)
+Matsumoto <- c(92,93,94,91,90,95,90,87,85,84)
+Kaminuma <- c(93,95,95,89,89,90,90,90,90,83)
+
+Points <- cbind(All, Leader, Reiji, Koasa, Daikichi, Matsumoto, Kaminuma)
+Points
+rownames(Points) <- c("とろサーモン","和牛","ミキ","かまいたち","スーパーマラドーナ",
+                      "ジャルジャル","さや香","ゆにばーす","カミナリ","マヂカルラブリー")
+colnames(Points) <- c("オール巨人", "渡辺正行","中川家・礼二","春風亭小朝","博多大吉",
+                      "松本人志","上沼恵美子")
+
+Points.pca <- princomp(Points)
+
+par(family = "HiraKakuProN-W3")
+par(mar = c(4, 0, 2, 0))
+plot(Points.pca$scores, type = "n")
+#text(Points.pca$scores, label = rownames(Points))
+pointLabel(x = Points.pca$scores[1], y = Points.pca$scores[2], labels=rownames(Points))
+par(pty = "m")
+biplot(Points.pca, cex = 0.6, xlab = "第一成分: 面白さ(64.2%)", ylab = "第二成分: 好み(16.7%)", main = "")
+```
+
+```{r}
+m1_uni_in <- m1_df1[m1_df1$keyword == "ゆにばーす",]
+uni_uni <- 0
+uni_kami <- length(grep("カミナリ", m1_uni_in$text))
+uni_toro <- length(grep("とろサーモン", m1_uni_in$text))
+uni_super <- length(grep("スーパーマラドーナ", m1_uni_in$text))
+uni_kama <- length(grep("かまいたち", m1_uni_in$text))
+uni_magic <- length(grep("マヂカルラブリー", m1_uni_in$text))
+uni_saya <- length(grep("さや香", m1_uni_in$text))
+uni_miki <- length(grep("ミキ", m1_uni_in$text))
+uni_wagyu <- length(grep("和牛", m1_uni_in$text))
+uni_jaru <- length(grep("ジャルジャル", m1_uni_in$text))
+uni <- c(uni_uni,uni_kami, uni_toro, uni_super, uni_kama,
+         uni_magic, uni_saya, uni_miki, uni_wagyu, uni_jaru)
+
+m1_kami_in <- m1_df1[m1_df1$keyword == "カミナリ",]
+kami_uni <- length(grep("ゆにばーす", m1_kami_in$text))
+kami_kami <- 0
+kami_toro <- length(grep("とろサーモン", m1_kami_in$text))
+kami_super <- length(grep("スーパーマラドーナ", m1_kami_in$text))
+kami_kama <- length(grep("かまいたち", m1_kami_in$text))
+kami_magic <- length(grep("マヂカルラブリー", m1_kami_in$text))
+kami_saya <- length(grep("さや香", m1_kami_in$text))
+kami_miki <- length(grep("ミキ", m1_kami_in$text))
+kami_wagyu <- length(grep("和牛", m1_kami_in$text))
+kami_jaru <- length(grep("ジャルジャル", m1_kami_in$text))
+kami <- c(kami_uni,kami_kami, kami_toro, kami_super, kami_kama,
+         kami_magic, kami_saya, kami_miki, kami_wagyu, kami_jaru)
+
+m1_toro_in <- m1_df1[m1_df1$keyword == "とろサーモン",]
+toro_uni <- length(grep("ゆにばーす", m1_toro_in$text))
+toro_kami <- length(grep("カミナリ", m1_toro_in$text))
+toro_toro <- 0
+toro_super <- length(grep("スーパーマラドーナ", m1_toro_in$text))
+toro_kama <- length(grep("かまいたち", m1_toro_in$text))
+toro_magic <- length(grep("マヂカルラブリー", m1_toro_in$text))
+toro_saya <- length(grep("さや香", m1_toro_in$text))
+toro_miki <- length(grep("ミキ", m1_toro_in$text))
+toro_wagyu <- length(grep("和牛", m1_toro_in$text))
+toro_jaru <- length(grep("ジャルジャル", m1_toro_in$text))
+toro <- c(toro_uni,toro_kami, toro_toro, toro_super, toro_kama,
+         toro_magic, toro_saya, toro_miki, toro_wagyu, toro_jaru)
+
+m1_super_in <- m1_df1[m1_df1$keyword == "スーパーマラドーナ",]
+super_uni <- length(grep("ゆにばーす", m1_super_in$text))
+super_kami <- length(grep("カミナリ", m1_super_in$text))
+super_toro <- length(grep("とろサーモン", m1_super_in$text))
+super_super <- 0
+super_kama <- length(grep("かまいたち", m1_super_in$text))
+super_magic <- length(grep("マヂカルラブリー", m1_super_in$text))
+super_saya <- length(grep("さや香", m1_super_in$text))
+super_miki <- length(grep("ミキ", m1_super_in$text))
+super_wagyu <- length(grep("和牛", m1_super_in$text))
+super_jaru <- length(grep("ジャルジャル", m1_super_in$text))
+super <- c(super_uni,super_kami, super_toro, super_super, super_kama,
+         super_magic, super_saya, super_miki, super_wagyu, super_jaru)
+
+m1_kama_in <- m1_df1[m1_df1$keyword == "かまいたち",]
+kama_uni <- length(grep("ゆにばーす", m1_kama_in$text))
+kama_kami <- length(grep("カミナリ", m1_kama_in$text))
+kama_toro <- length(grep("とろサーモン", m1_kama_in$text))
+kama_super <- length(grep("スーパーマラドーナ", m1_kama_in$text))
+kama_kama <- 0
+kama_magic <- length(grep("マヂカルラブリー", m1_kama_in$text))
+kama_saya <- length(grep("さや香", m1_kama_in$text))
+kama_miki <- length(grep("ミキ", m1_kama_in$text))
+kama_wagyu <- length(grep("和牛", m1_kama_in$text))
+kama_jaru <- length(grep("ジャルジャル", m1_kama_in$text))
+kama <- c(kama_uni,kama_kami, kama_toro, kama_super, kama_kama,
+         kama_magic, kama_saya, kama_miki, kama_wagyu, kama_jaru)
+
+m1_magic_in <- m1_df1[m1_df1$keyword == "マヂカルラブリー",]
+magic_uni <- length(grep("ゆにばーす", m1_magic_in$text))
+magic_kami <- length(grep("カミナリ", m1_magic_in$text))
+magic_toro <- length(grep("とろサーモン", m1_magic_in$text))
+magic_super <- length(grep("スーパーマラドーナ", m1_magic_in$text))
+magic_kama <- length(grep("かまいたち", m1_magic_in$text))
+magic_magic <- 0
+magic_saya <- length(grep("さや香", m1_magic_in$text))
+magic_miki <- length(grep("ミキ", m1_magic_in$text))
+magic_wagyu <- length(grep("和牛", m1_magic_in$text))
+magic_jaru <- length(grep("ジャルジャル", m1_magic_in$text))
+magic <- c(magic_uni,magic_kami, magic_toro, magic_super, magic_kama,
+         magic_magic, magic_saya, magic_miki, magic_wagyu, magic_jaru)
+
+m1_saya_in <- m1_df1[m1_df1$keyword == "さや香",]
+saya_uni <- length(grep("ゆにばーす", m1_saya_in$text))
+saya_kami <- length(grep("カミナリ", m1_saya_in$text))
+saya_toro <- length(grep("とろサーモン", m1_saya_in$text))
+saya_super <- length(grep("スーパーマラドーナ", m1_saya_in$text))
+saya_kama <- length(grep("かまいたち", m1_saya_in$text))
+saya_magic <- length(grep("マヂカルラブリー", m1_saya_in$text))
+saya_saya <- 0
+saya_miki <- length(grep("ミキ", m1_saya_in$text))
+saya_wagyu <- length(grep("和牛", m1_saya_in$text))
+saya_jaru <- length(grep("ジャルジャル", m1_saya_in$text))
+saya <- c(saya_uni,saya_kami, saya_toro, saya_super, saya_kama,
+         saya_magic, saya_saya, saya_miki, saya_wagyu, saya_jaru)
+
+m1_miki_in <- m1_df1[m1_df1$keyword == "ミキ",]
+miki_uni <- length(grep("ゆにばーす", m1_miki_in$text))
+miki_kami <- length(grep("カミナリ", m1_miki_in$text))
+miki_toro <- length(grep("とろサーモン", m1_miki_in$text))
+miki_super <- length(grep("スーパーマラドーナ", m1_miki_in$text))
+miki_kama <- length(grep("かまいたち", m1_miki_in$text))
+miki_magic <- length(grep("マヂカルラブリー", m1_miki_in$text))
+miki_saya <- length(grep("さや香", m1_miki_in$text))
+miki_miki <- 0
+miki_wagyu <- length(grep("和牛", m1_miki_in$text))
+miki_jaru <- length(grep("ジャルジャル", m1_miki_in$text))
+miki <- c(miki_uni,miki_kami, miki_toro, miki_super, miki_kama,
+         miki_magic, miki_saya, miki_miki, miki_wagyu, miki_jaru)
+
+m1_wagyu_in <- m1_df1[m1_df1$keyword == "和牛",]
+wagyu_uni <- length(grep("ゆにばーす", m1_wagyu_in$text))
+wagyu_kami <- length(grep("カミナリ", m1_wagyu_in$text))
+wagyu_toro <- length(grep("とろサーモン", m1_wagyu_in$text))
+wagyu_super <- length(grep("スーパーマラドーナ", m1_wagyu_in$text))
+wagyu_kama <- length(grep("かまいたち", m1_wagyu_in$text))
+wagyu_magic <- length(grep("マヂカルラブリー", m1_wagyu_in$text))
+wagyu_saya <- length(grep("さや香", m1_wagyu_in$text))
+wagyu_miki <- length(grep("ミキ", m1_wagyu_in$text))
+wagyu_wagyu <- 0
+wagyu_jaru <- length(grep("ジャルジャル", m1_wagyu_in$text))
+wagyu <- c(wagyu_uni,wagyu_kami, wagyu_toro, wagyu_super, wagyu_kama,
+         wagyu_magic, wagyu_saya, wagyu_miki, wagyu_wagyu, wagyu_jaru)
+
+m1_jaru_in <- m1_df1[m1_df1$keyword == "ジャルジャル",]
+jaru_uni <- length(grep("ゆにばーす", m1_jaru_in$text))
+jaru_kami <- length(grep("カミナリ", m1_jaru_in$text))
+jaru_toro <- length(grep("とろサーモン", m1_jaru_in$text))
+jaru_super <- length(grep("スーパーマラドーナ", m1_jaru_in$text))
+jaru_kama <- length(grep("かまいたち", m1_jaru_in$text))
+jaru_magic <- length(grep("マヂカルラブリー", m1_jaru_in$text))
+jaru_saya <- length(grep("さや香", m1_jaru_in$text))
+jaru_miki <- length(grep("ミキ", m1_jaru_in$text))
+jaru_wagyu <- length(grep("和牛", m1_jaru_in$text))
+jaru_jaru <- 0
+jaru <- c(jaru_uni,jaru_kami, jaru_toro, jaru_super, jaru_kama,
+         jaru_magic, jaru_saya, jaru_miki, jaru_wagyu, jaru_jaru)
+```
+
+```{r}
+network <- cbind(uni, kami, toro, super, kama, magic, saya, miki, wagyu, jaru)
+rownames(network) <- c("ゆにばーす", "カミナリ", "とろサーモン", "スーパーマラドーナ", "かまいたち", "マヂカルラブリー", "さや香", "ミキ", "和牛", "ジャルジャル")
+colnames(network) <- c("ゆにばーす", "カミナリ", "とろサーモン", "スーパーマラドーナ", "かまいたち", "マヂカルラブリー", "さや香", "ミキ", "和牛", "ジャルジャル")
+
+for (i in 1:10){
+  for (j in 1:10) {
+    network[i, j] <- max(network[i, j], network[j, i])
+  }
+}
+```
+
+```{r}
+library(igraph)
+network_g <- graph.adjacency(network, weight = TRUE)
+bet <- betweenness(network_g)
+max(bet)
+col <- colors()[1:length(bet)]
+network_pr <- page.rank(network_g, directed=FALSE)
+#plot(network_g, vertex.size = bet*2, edge.width = E(network_g)$weight, vertex.color = col)
+set.seed(1234)
+plot(network_g, vertex.size=network_pr$vector*200, edge.arrow.size=0, vertex.color="orange", layout=layout.fruchterman.reingold, edge.width = E(network_g)$weight/1500)
+```
+
+
+
+
